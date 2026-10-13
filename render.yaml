@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: campus-lost-and-found-backend
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false
+        # Provide your MongoDB Atlas connection string:
+        # mongodb+srv://<username>:<password>@cluster0.mongodb.net/campus_lost_and_found?retryWrites=true&w=majority
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRE
+        value: 7d
+      - key: UPLOAD_DIR
+        value: uploads
+      - key: MAX_FILE_SIZE
+        value: 5242880
+      - key: CLIENT_URL
+        value: https://frontend-psi-nine-26.vercel.app
