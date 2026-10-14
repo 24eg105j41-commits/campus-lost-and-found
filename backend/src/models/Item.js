@@ -50,7 +50,7 @@ const itemSchema = new mongoose.Schema(
     },
     color: {
       type: String,
-      required: [true, 'Color is required'],
+      default: 'Unspecified',
       trim: true,
     },
     image: {

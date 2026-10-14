@@ -234,31 +234,36 @@ export default function DashboardPage() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {myItems.map((item) => (
-                  <div
+                  <Link
                     key={item._id}
-                    className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3 shadow-sm"
+                    to={`/items/${item._id}`}
+                    className="group bg-white rounded-2xl border border-slate-200 p-5 space-y-3 shadow-sm hover:shadow-md hover:border-campus-300 transition-all flex flex-col justify-between"
                   >
-                    <div className="flex items-center justify-between text-xs">
-                      <span
-                        className={`px-2 py-0.5 rounded font-bold uppercase text-[10px] ${
-                          item.type === 'lost'
-                            ? 'bg-rose-100 text-rose-700'
-                            : 'bg-emerald-100 text-emerald-700'
-                        }`}
-                      >
-                        {item.type}
-                      </span>
-                      <span className="font-semibold text-slate-600 capitalize">
-                        {item.status.replace('_', ' ')}
-                      </span>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span
+                          className={`px-2 py-0.5 rounded font-bold uppercase text-[10px] ${
+                            item.type === 'lost'
+                              ? 'bg-rose-100 text-rose-700'
+                              : 'bg-emerald-100 text-emerald-700'
+                          }`}
+                        >
+                          {item.type}
+                        </span>
+                        <span className="font-semibold text-slate-600 capitalize">
+                          {(item.status || 'Active').replace('_', ' ')}
+                        </span>
+                      </div>
+                      <h3 className="font-bold text-slate-900 text-base group-hover:text-campus-600 transition-colors">
+                        {item.itemName || item.title}
+                      </h3>
+                      <p className="text-xs text-slate-500 line-clamp-2">{item.description}</p>
                     </div>
-                    <h3 className="font-bold text-slate-900 text-base">{item.title}</h3>
-                    <p className="text-xs text-slate-500 line-clamp-2">{item.description}</p>
                     <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
                       <span>{item.category}</span>
                       <span>{item.date ? new Date(item.date).toLocaleDateString() : 'N/A'}</span>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}
@@ -283,14 +288,14 @@ export default function DashboardPage() {
                   >
                     <div>
                       <h4 className="font-bold text-slate-900 text-sm">
-                        Claim for: {claim.item?.title || 'Campus Item'}
+                        Claim for: {claim.item?.itemName || claim.item?.title || 'Campus Item'}
                       </h4>
                       <p className="text-xs text-slate-500 mt-0.5">
                         Proof submitted: {claim.proofDescription}
                       </p>
                     </div>
                     <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 capitalize">
-                      {claim.status}
+                      {claim.status || 'submitted'}
                     </span>
                   </div>
                 ))}

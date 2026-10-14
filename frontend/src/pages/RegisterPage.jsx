@@ -60,9 +60,14 @@ export default function RegisterPage() {
         navigate('/dashboard');
       }
     } catch (err) {
-      setError(
-        err.response?.data?.message || 'Registration failed. Please review your details.'
-      );
+      const serverMsg = err.response?.data?.message;
+      if (serverMsg) {
+        setError(serverMsg);
+      } else if (!err.response || err.code === 'ERR_NETWORK') {
+        setError('The server is currently waking up from idle state. Please wait a few seconds and try again.');
+      } else {
+        setError('Registration failed. Please review your details and try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -82,9 +87,18 @@ export default function RegisterPage() {
         </div>
 
         {error && (
-          <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-            <span>{error}</span>
+          <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex flex-col gap-1.5">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>{error}</span>
+            </div>
+            {error.toLowerCase().includes('already exists') && (
+              <div className="pl-6">
+                <Link to="/login" className="font-bold underline text-campus-700 hover:text-campus-900">
+                  Click here to Log In instead →
+                </Link>
+              </div>
+            )}
           </div>
         )}
 

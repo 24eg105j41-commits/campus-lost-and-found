@@ -1,4 +1,7 @@
 const Item = require('../models/Item');
+const Claim = require('../models/Claim');
+const Match = require('../models/Match');
+const Notification = require('../models/Notification');
 
 const ALLOWED_CATEGORIES = [
   'Electronics',
@@ -68,12 +71,7 @@ const createItem = async (req, res, next) => {
       });
     }
 
-    if (!color || !color.trim()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please specify the primary color of the item',
-      });
-    }
+    const finalColor = (color && color.trim()) || 'Unspecified';
 
     // Handle image upload from Multer
     let imagePath = '';
@@ -96,7 +94,7 @@ const createItem = async (req, res, next) => {
       description: description.trim(),
       location: location.trim(),
       date: date ? new Date(date) : new Date(),
-      color: color.trim(),
+      color: finalColor,
       image: imagePath,
       status: initialStatus,
     });
@@ -371,6 +369,13 @@ const deleteItem = async (req, res, next) => {
     }
 
     await item.deleteOne();
+
+    // Cascading cleanup of linked claims, matches, and notifications
+    await Promise.allSettled([
+      Claim.deleteMany({ item: item._id }),
+      Match.deleteMany({ $or: [{ lostItemId: item._id }, { foundItemId: item._id }] }),
+      Notification.deleteMany({ relatedItem: item._id }),
+    ]);
 
     res.status(200).json({
       success: true,

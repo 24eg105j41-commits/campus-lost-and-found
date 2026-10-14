@@ -8,6 +8,7 @@ const API_BASE = BACKEND_URL ? `${BACKEND_URL}/api` : '/api';
 
 const API = axios.create({
   baseURL: API_BASE,
+  timeout: 35000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -43,10 +44,47 @@ API.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor to handle session expiration or errors
+// Response interceptor with automatic retry on cold starts and friendly error mapping
 API.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    const config = error.config;
+    const status = error.response?.status;
+    const isColdStart =
+      !error.response ||
+      status === 502 ||
+      status === 503 ||
+      status === 504 ||
+      error.code === 'ECONNABORTED' ||
+      error.code === 'ERR_NETWORK';
+
+    // Auto-retry once for cold-starts on cloud free tier
+    if (isColdStart && config && !config._retry) {
+      config._retry = true;
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        return await API(config);
+      } catch (retryErr) {
+        error = retryErr;
+      }
+    }
+
+    // Ensure error.response.data has a meaningful message string for UI
+    if (!error.response) {
+      error.response = { data: {} };
+    }
+    if (!error.response.data || typeof error.response.data !== 'object') {
+      error.response.data = {};
+    }
+    if (!error.response.data.message) {
+      if (isColdStart) {
+        error.response.data.message =
+          'Server is waking up from idle state. Please try again in a few seconds.';
+      } else {
+        error.response.data.message = error.message || 'Request failed. Please try again.';
+      }
+    }
+
     return Promise.reject(error);
   }
 );

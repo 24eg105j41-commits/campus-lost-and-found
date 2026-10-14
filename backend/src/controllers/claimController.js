@@ -156,7 +156,14 @@ const updateClaimStatus = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Claim not found' });
     }
 
-    const item = await Item.findById(claim.item._id);
+    if (!claim.item) {
+      return res.status(404).json({ success: false, message: 'Associated item no longer exists' });
+    }
+
+    const item = await Item.findById(claim.item._id || claim.item);
+    if (!item) {
+      return res.status(404).json({ success: false, message: 'Associated item not found' });
+    }
 
     // Only reporter or admin can resolve claim
     const itemOwnerId = (item.user?._id || item.user || '').toString();
@@ -188,6 +195,7 @@ const updateClaimStatus = async (req, res, next) => {
       await item.save();
     } else if (status === 'completed') {
       item.status = 'Recovered';
+      item.recoveryDetails = item.recoveryDetails || {};
       item.recoveryDetails.recoveredAt = new Date();
       await item.save();
     } else if (status === 'rejected') {
@@ -206,7 +214,7 @@ const updateClaimStatus = async (req, res, next) => {
     await Notification.create({
       recipient: claim.claimant,
       title: `Claim ${status.toUpperCase()}`,
-      message: `Your claim for "${item.title}" was updated to: ${status}.`,
+      message: `Your claim for "${item.itemName || item.title || 'reported item'}" was updated to: ${status}.`,
       type: 'claim_update',
       relatedItem: item._id,
       relatedClaim: claim._id,

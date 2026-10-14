@@ -86,8 +86,41 @@ const getAllClaims = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Delete a user and associated items (admin only)
+ * @route   DELETE /api/admin/users/:id
+ * @access  Private/Admin
+ */
+const deleteUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    if (user.role === 'admin' && req.user.id === user._id.toString()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot delete your own admin account',
+      });
+    }
+
+    await User.findByIdAndDelete(req.params.id);
+    await Item.deleteMany({ user: req.params.id });
+    await Claim.deleteMany({ claimant: req.params.id });
+
+    res.status(200).json({
+      success: true,
+      message: 'User and associated records deleted successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getStats,
   getAllUsers,
   getAllClaims,
+  deleteUser,
 };
