@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import BackendStatusBadge from '../components/BackendStatusBadge';
 import {
   Search,
   PlusCircle,
@@ -45,9 +44,6 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-b from-campus-50 via-white to-slate-50 pt-12 pb-20 border-b border-slate-200">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
-          <div className="flex justify-center mb-2">
-            <BackendStatusBadge />
-          </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-tight">
             Campus <span className="text-campus-600">Lost & Found</span>
